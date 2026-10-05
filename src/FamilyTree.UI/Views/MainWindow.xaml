@@ -1,0 +1,147 @@
+<Window x:Class="FamilyTree.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FamilyTree" Width="1260" Height="860" MinWidth="1080" MinHeight="650"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="*" /><RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,20">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" IsEnabled="{Binding IsIdle}">
+                <Button Content="Refresh" Command="{Binding ReloadCommand}" />
+                <Button Content="+ Add member" Command="{Binding AddMemberCommand}" Style="{StaticResource PrimaryButton}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="FamilyTree" FontSize="30" FontWeight="SemiBold" />
+                <TextBlock Text="People, connections, and the generations between them." Foreground="{StaticResource Muted}" Margin="0,4,0,0" />
+            </StackPanel>
+        </DockPanel>
+        <Border Grid.Row="1" Background="#FFF0ED" CornerRadius="5" Padding="12" Margin="0,0,0,12">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers><DataTrigger Binding="{Binding ErrorMessage}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#9A3023" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+        </Border>
+        <Grid Grid.Row="2" IsEnabled="{Binding IsIdle}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition Width="*" /><ColumnDefinition Width="310" /></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Margin="0,0,14,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Family members" Style="{StaticResource SectionTitle}" />
+                    <TextBox DockPanel.Dock="Top" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Search members" ToolTip="Search members by name" />
+                    <ListBox ItemsSource="{Binding VisibleMembers}" SelectedItem="{Binding SelectedMember}" BorderThickness="0" HorizontalContentAlignment="Stretch" AutomationProperties.Name="Family members">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4,8">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding MaritalStatus}" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,3,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="0,0,14,0">
+                <StackPanel>
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedMember.Name, TargetNullValue='Select a family member'}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <WrapPanel Margin="0,12,0,10">
+                                <TextBlock Text="{Binding SelectedMember.Gender}" Margin="0,0,18,0" />
+                                <TextBlock Text="{Binding SelectedMember.LifeStatus}" Margin="0,0,18,0" />
+                                <TextBlock Text="{Binding SelectedMember.MaritalStatus}" />
+                            </WrapPanel>
+                            <TextBlock Text="{Binding SelectedMember.DateOfBirth, StringFormat='Born: {0:yyyy-MM-dd}', TargetNullValue='Birth date unknown'}" Foreground="{StaticResource Muted}" Margin="0,0,0,16" />
+                            <WrapPanel>
+                                <Button Content="Edit member" Command="{Binding EditMemberCommand}" />
+                                <Button Content="Delete member" Command="{Binding DeleteMemberCommand}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="Recorded relationships" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="Each label describes the other person's relationship to the selected member." TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,0,0,12" />
+                            <DataGrid ItemsSource="{Binding DirectRelationships}" SelectedItem="{Binding SelectedRelationship}" MinHeight="100" MaxHeight="220" AutomationProperties.Name="Recorded relationships">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Person" Binding="{Binding Member.Name}" Width="*" />
+                                    <DataGridTextColumn Header="Relationship" Binding="{Binding Label}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Button Content="Add relationship" Command="{Binding AddRelationshipCommand}" />
+                                <Button Content="Mark as former spouse" Command="{Binding MarkFormerSpouseCommand}" />
+                                <Button Content="Remove incorrect relationship" Command="{Binding RemoveRelationshipCommand}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Across generations" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="Calculated from the recorded parent connections. A person may appear in more than one category." TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,0,0,12" />
+                            <DataGrid ItemsSource="{Binding DerivedRelationships}" MinHeight="100" MaxHeight="240" AutomationProperties.Name="Derived relationships">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Person" Binding="{Binding Name}" Width="*" />
+                                    <DataGridTextColumn Header="Relationship" Binding="{Binding Relationship}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource Card}" DataContext="{Binding MemberEditor}" Visibility="{Binding IsOpen, Converter={StaticResource BoolVisibility}}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource SectionTitle}" />
+                            <Label Content="_Name" Target="{Binding ElementName=MemberName}" />
+                            <TextBox x:Name="MemberName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="200" AutomationProperties.Name="Member name" />
+                            <Label Content="_Birth date (optional)" Target="{Binding ElementName=BirthDatePicker}" />
+                            <DatePicker x:Name="BirthDatePicker" SelectedDate="{Binding DateOfBirth}" SelectedDateFormat="Short" Margin="0,0,0,12" DateValidationError="OnDateValidationError" LostKeyboardFocus="OnBirthDateLostFocus" AutomationProperties.Name="Birth date" />
+                            <TextBlock Text="{Binding DateInputError}" Foreground="#9A3023" TextWrapping="Wrap" />
+                            <Label Content="_Gender" Target="{Binding ElementName=GenderChoice}" />
+                            <ComboBox x:Name="GenderChoice" ItemsSource="{Binding Genders}" SelectedItem="{Binding Gender}" AutomationProperties.Name="Gender" />
+                            <Label Content="_Life status" Target="{Binding ElementName=LifeChoice}" />
+                            <ComboBox x:Name="LifeChoice" ItemsSource="{Binding LifeStatuses}" SelectedItem="{Binding LifeStatus}" AutomationProperties.Name="Life status" />
+                            <Label Content="_Marital status" Target="{Binding ElementName=MaritalChoice}" />
+                            <ComboBox x:Name="MaritalChoice" ItemsSource="{Binding MaritalStatuses}" SelectedItem="{Binding MaritalStatus}" AutomationProperties.Name="Marital status" />
+                            <TextBlock Text="Marital status may be entered when the partner is not recorded. Recorded spouse changes update both members." TextWrapping="Wrap" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,0,0,16" />
+                            <WrapPanel>
+                                <Button Content="Save member" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButton}" />
+                                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" DataContext="{Binding RelationshipEditor}" Visibility="{Binding IsOpen, Converter={StaticResource BoolVisibility}}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="Add relationship" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="{Binding Source.Name}" FontWeight="SemiBold" FontSize="18" TextWrapping="Wrap" Margin="0,0,0,12" />
+                            <Label Content="is the…" Target="{Binding ElementName=RelationshipChoice}" />
+                            <ComboBox x:Name="RelationshipChoice" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="DisplayName" AutomationProperties.Name="Relationship type" />
+                            <Label Content="of…" Target="{Binding ElementName=TargetChoice}" />
+                            <ComboBox x:Name="TargetChoice" ItemsSource="{Binding Candidates}" SelectedItem="{Binding Target}" DisplayMemberPath="Name" AutomationProperties.Name="Related member" />
+                            <TextBlock Text="For example: Michael is the Son of John. The reverse relationship appears automatically." TextWrapping="Wrap" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,0,0,16" />
+                            <WrapPanel>
+                                <Button Content="Save relationship" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButton}" />
+                                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Build your family" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="1. Add the people you know.&#10;&#10;2. Select a member and connect a parent, child, or spouse.&#10;&#10;3. Explore the relationships across generations." TextWrapping="Wrap" Foreground="{StaticResource Muted}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+        <DockPanel Grid.Row="3" Margin="0,14,0,0">
+            <TextBlock DockPanel.Dock="Right" Text="Working…" Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}" />
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" />
+        </DockPanel>
+    </Grid>
+</Window>
