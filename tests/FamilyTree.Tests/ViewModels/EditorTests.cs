@@ -7,12 +7,13 @@ namespace FamilyTree.Tests.ViewModels;
 
 public sealed class EditorTests : IDisposable
 {
+    private sealed class TreeWindowStub : ITreeWindowService { public Task ShowAsync() => Task.CompletedTask; }
     private readonly TestWorkspace w = new();
     private readonly ConfirmationStub confirmation = new();
     private readonly MainViewModel vm;
 
     public EditorTests() => vm = new(w.Members, w.Relationships, w.Resolver, w.Traversal, confirmation,
-        new MemberEditorViewModel(w.Members), new RelationshipEditorViewModel(w.Relationships));
+        new MemberEditorViewModel(w.Members), new RelationshipEditorViewModel(w.Relationships), new TreeWindowStub());
     public void Dispose() => w.Dispose();
 
     [Fact]

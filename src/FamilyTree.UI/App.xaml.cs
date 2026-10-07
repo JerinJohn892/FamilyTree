@@ -19,11 +19,14 @@ public partial class App : Application
         base.OnStartup(e);
         try
         {
-            var path = Environment.GetEnvironmentVariable("FAMILYTREE_DB_PATH");
-            if (string.IsNullOrWhiteSpace(path)) path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FamilyTree", "familytree.db");
-            var database = new SqliteDatabase(path);
-            await Task.Run(database.Initialize);
+            var paths = new ApplicationPaths(AppContext.BaseDirectory, Environment.GetEnvironmentVariable("FAMILYTREE_DB_PATH"));
+            var database = new SqliteDatabase(paths.DatabasePath);
+            await Task.Run(() =>
+            {
+                if (!paths.IsOverride) LegacyDatabaseImporter.ImportIfMissing(Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FamilyTree", "familytree.db"), paths.DatabasePath);
+                database.Initialize();
+            });
             var registrations = new ServiceCollection();
             registrations.AddSingleton<IUnitOfWorkFactory>(database);
             registrations.AddSingleton(TimeProvider.System);
@@ -37,10 +40,15 @@ public partial class App : Application
             registrations.AddSingleton<IConfirmationService, ConfirmationService>();
             registrations.AddTransient<MemberEditorViewModel>();
             registrations.AddTransient<RelationshipEditorViewModel>();
+            registrations.AddSingleton<IFamilyTreeLayoutService, FamilyTreeLayoutService>();
+            registrations.AddSingleton<ITreeWindowService, TreeWindowService>();
+            registrations.AddTransient<FamilyTreeViewModel>();
+            registrations.AddTransient<FamilyTreeWindow>();
             registrations.AddTransient<MainViewModel>();
             registrations.AddTransient<MainWindow>();
             services = registrations.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
             var window = services.GetRequiredService<MainWindow>();
+            ((MainViewModel)window.DataContext).DatabaseLocation = paths.DatabasePath;
             MainWindow = window;
             window.Show();
             await ((MainViewModel)window.DataContext).InitializeAsync();

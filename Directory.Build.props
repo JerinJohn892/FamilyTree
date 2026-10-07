@@ -6,5 +6,6 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <!-- Keep the Windows publish graph in each project's lock file. -->
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)Output/Builds/$(MSBuildProjectName)/</BaseOutputPath>
   </PropertyGroup>
 </Project>

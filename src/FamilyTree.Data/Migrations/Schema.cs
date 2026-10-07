@@ -4,7 +4,7 @@ internal static class Schema
 {
     public const int Version = 1;
     public const string Initial = """
-        CREATE TABLE FamilyMember (
+        CREATE TABLE IF NOT EXISTS FamilyMember (
             MemberId TEXT PRIMARY KEY NOT NULL,
             Name TEXT NOT NULL CHECK (length(Name) BETWEEN 1 AND 200 AND Name = trim(Name)),
             DateOfBirth TEXT NULL,
@@ -14,7 +14,7 @@ internal static class Schema
             CreatedAt TEXT NOT NULL,
             UpdatedAt TEXT NOT NULL
         );
-        CREATE TABLE RelationshipType (
+        CREATE TABLE IF NOT EXISTS RelationshipType (
             RelationshipTypeId INTEGER PRIMARY KEY,
             Code TEXT NOT NULL UNIQUE,
             Name TEXT NOT NULL,
@@ -25,8 +25,8 @@ internal static class Schema
         INSERT INTO RelationshipType VALUES
             (1, 'Parent', 'Parent', 1, 0, 1),
             (2, 'Spouse', 'Spouse', 1, 0, 1),
-            (3, 'FormerSpouse', 'Former spouse', 1, 0, 1);
-        CREATE TABLE MemberRelationship (
+            (3, 'FormerSpouse', 'Former spouse', 1, 0, 1) ON CONFLICT(RelationshipTypeId) DO NOTHING;
+        CREATE TABLE IF NOT EXISTS MemberRelationship (
             MemberRelationshipId TEXT PRIMARY KEY NOT NULL,
             SourceMemberId TEXT NOT NULL REFERENCES FamilyMember(MemberId) ON DELETE RESTRICT,
             RelationshipTypeId INTEGER NOT NULL REFERENCES RelationshipType(RelationshipTypeId) ON DELETE RESTRICT,
@@ -37,10 +37,10 @@ internal static class Schema
             CHECK (RelationshipTypeId NOT IN (2,3) OR SourceMemberId < TargetMemberId),
             UNIQUE (SourceMemberId, RelationshipTypeId, TargetMemberId)
         );
-        CREATE UNIQUE INDEX UX_SpousePair ON MemberRelationship(SourceMemberId, TargetMemberId)
+        CREATE UNIQUE INDEX IF NOT EXISTS UX_SpousePair ON MemberRelationship(SourceMemberId, TargetMemberId)
             WHERE RelationshipTypeId IN (2,3);
-        CREATE INDEX IX_RelationshipTarget ON MemberRelationship(TargetMemberId, RelationshipTypeId, SourceMemberId);
-        CREATE INDEX IX_RelationshipType ON MemberRelationship(RelationshipTypeId);
+        CREATE INDEX IF NOT EXISTS IX_RelationshipTarget ON MemberRelationship(TargetMemberId, RelationshipTypeId, SourceMemberId);
+        CREATE INDEX IF NOT EXISTS IX_RelationshipType ON MemberRelationship(RelationshipTypeId);
         PRAGMA user_version = 1;
         """;
 }

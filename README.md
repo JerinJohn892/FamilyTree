@@ -23,11 +23,21 @@ Alternatively, open `FamilyTree.sln` in an IDE supporting .NET 10/WPF and set `F
 4. Use **Mark as former spouse** to record a divorce and preserve the connection. Use **Remove incorrect relationship** to correct an erroneous entry.
 5. Remove all of a member's relationships before deleting that member. Deletion and relationship removal ask for confirmation.
 
+6. Choose **Show family tree** to open a separate visualization window. Current spouses share a card: male left/light blue, female right/light pink. Parent arrows terminate at the child's own section, including married children. Children and grandchildren appear in successive rows. The window supports horizontal/vertical scrolling; **Refresh tree** or reopening reloads saved data.
+
+The deterministic layout also includes isolated members, single parents, and separate former spouses. Same-gender spouses retain their recorded genders/colors and use name order. In unusual cross-generation marriages where combining couples would create a layout cycle, individual cards are displayed with an explanatory notice. This MVP avoids overlapping cards but does not guarantee crossing-free connectors in complex families.
+
 Changes are saved immediately after a successful operation. **Refresh** reloads the database. Switching members or refreshing discards an unsaved editor form; **Cancel** also discards it.
 
 ### Database and backups
 
-The default database is `%LOCALAPPDATA%\FamilyTree\familytree.db`. The app creates its folder and applies numbered, transactional schema migrations on startup. Set `FAMILYTREE_DB_PATH` to an absolute file path to use a different database:
+The default database is `Output/Data/familytree.db` under the repository root. All projects build beneath `Output/Builds/<project>/<configuration>/<framework>/`; Debug, Release, and publish builds inside that tree share the same data folder. Clean/rebuild never targets `Output/Data`.
+
+Startup creates missing tables/indexes and seeds missing relationship types transactionally, without dropping tables or replacing saved records. The three SQL tables are `FamilyMember`, `RelationshipType`, and `MemberRelationship`; relationship rules remain in Core code. Existing members and relationships load automatically through the member service and MainViewModel.
+
+On first use, if the new database is absent, the app imports the previous `%LOCALAPPDATA%\FamilyTree\familytree.db` using SQLite's backup API (including committed WAL records). The original remains untouched. Once the new database exists it is authoritative; later changes made with an old executable are not merged. The resolved database path is visible in the main window footer.
+
+A distributed executable outside an `Output/Builds` tree uses `<executable folder>/Output/Data`, independent of the working directory. Keep the package in a writable location and retain its data folder when upgrading. Set `FAMILYTREE_DB_PATH` to an absolute file path to use a different database:
 
 ```powershell
 $env:FAMILYTREE_DB_PATH = Join-Path $env:TEMP 'FamilyTree-smoke.db'
@@ -53,10 +63,10 @@ Downloads use Microsoft's `builds.dotnet.microsoft.com` and NuGet (`api.nuget.or
 ## Package for Windows x64
 
 ```powershell
-dotnet publish src/FamilyTree.UI -c Release -r win-x64 --self-contained true -p:RestoreLockedMode=true -o artifacts/win-x64
+dotnet publish src/FamilyTree.UI -c Release -r win-x64 --self-contained true -p:RestoreLockedMode=true -o Output/Builds/win-x64
 ```
 
-Distribute the **entire** `artifacts/win-x64` folder; launch `FamilyTree.UI.exe` on Windows. This self-contained package includes the runtime and SQLite native library. Packaging from Linux is supported, but does not validate execution on Windows. An installer, signing, auto-update, and ARM64 distribution are outside this MVP.
+Distribute the **entire** `Output/Builds/win-x64` folder; launch `FamilyTree.UI.exe` on Windows. This self-contained package includes the runtime and SQLite native library. Packaging from Linux is supported, but does not validate execution on Windows. An installer, signing, auto-update, and ARM64 distribution are outside this MVP.
 
 ## Architecture
 

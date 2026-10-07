@@ -34,11 +34,9 @@ public sealed class SqliteDatabase : IUnitOfWorkFactory
         var version = Convert.ToInt32(command.ExecuteScalar());
         if (version > Schema.Version)
             throw new InvalidOperationException("This database was created by a newer FamilyTree version. Update the application before opening it.");
-        if (version == 0)
-        {
-            command.CommandText = Schema.Initial;
-            command.ExecuteNonQuery();
-        }
+        // Idempotently ensure required tables, indexes and missing master rows.
+        command.CommandText = Schema.Initial;
+        command.ExecuteNonQuery();
         transaction.Commit();
     }
 

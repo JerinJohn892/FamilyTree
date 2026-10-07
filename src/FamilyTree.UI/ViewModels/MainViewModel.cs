@@ -16,6 +16,8 @@ public partial class MainViewModel : ObservableObject
     private readonly IRelationshipResolver resolver;
     private readonly IFamilyTreeTraversalService traversal;
     private readonly IConfirmationService confirmation;
+    private readonly ITreeWindowService treeWindows;
+    public string DatabaseLocation { get; set; } = "";
     private FamilyGraph graph = new([], []);
     public MemberEditorViewModel MemberEditor { get; }
     public RelationshipEditorViewModel RelationshipEditor { get; }
@@ -34,14 +36,16 @@ public partial class MainViewModel : ObservableObject
 
     public MainViewModel(IFamilyMemberService members, IRelationshipService relationships,
         IRelationshipResolver resolver, IFamilyTreeTraversalService traversal, IConfirmationService confirmation,
-        MemberEditorViewModel memberEditor, RelationshipEditorViewModel relationshipEditor)
+        MemberEditorViewModel memberEditor, RelationshipEditorViewModel relationshipEditor, ITreeWindowService treeWindows)
     {
         this.members = members; this.relationships = relationships; this.resolver = resolver;
-        this.traversal = traversal; this.confirmation = confirmation;
+        this.treeWindows = treeWindows; this.traversal = traversal; this.confirmation = confirmation;
         MemberEditor = memberEditor; RelationshipEditor = relationshipEditor;
         MemberEditor.RunAsync = RunAsync; RelationshipEditor.RunAsync = RunAsync;
         MemberEditor.SavedAsync = RefreshAsync; RelationshipEditor.SavedAsync = RefreshAsync;
     }
+
+    [RelayCommand] private Task ShowTreeAsync() => RunAsync(treeWindows.ShowAsync);
 
     public Task InitializeAsync() => RunAsync(() => RefreshAsync(null));
 

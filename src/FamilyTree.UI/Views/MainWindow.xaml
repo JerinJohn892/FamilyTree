@@ -10,12 +10,13 @@
         </Grid.RowDefinitions>
         <DockPanel Margin="0,0,0,20">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" IsEnabled="{Binding IsIdle}">
+                <Button Content="Show family tree" Command="{Binding ShowTreeCommand}" />
                 <Button Content="Refresh" Command="{Binding ReloadCommand}" />
                 <Button Content="+ Add member" Command="{Binding AddMemberCommand}" Style="{StaticResource PrimaryButton}" />
             </StackPanel>
             <StackPanel>
                 <TextBlock Text="FamilyTree" FontSize="30" FontWeight="SemiBold" />
-                <TextBlock Text="People, connections, and the generations between them." Foreground="{StaticResource Muted}" Margin="0,4,0,0" />
+                <TextBlock ToolTip="{Binding DatabaseLocation}" Text="People, connections, and the generations between them." Foreground="{StaticResource Muted}" Margin="0,4,0,0" />
             </StackPanel>
         </DockPanel>
         <Border Grid.Row="1" Background="#FFF0ED" CornerRadius="5" Padding="12" Margin="0,0,0,12">
@@ -141,7 +142,10 @@
         </Grid>
         <DockPanel Grid.Row="3" Margin="0,14,0,0">
             <TextBlock DockPanel.Dock="Right" Text="Working…" Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}" />
-            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" />
+            <StackPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock Text="{Binding DatabaseLocation, StringFormat='Database: {0}'}" ToolTip="{Binding DatabaseLocation}" FontSize="11" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+            </StackPanel>
         </DockPanel>
     </Grid>
 </Window>
